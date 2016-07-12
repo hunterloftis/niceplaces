@@ -95,25 +95,27 @@ function radius(d, i) {
 d3.json("build/us.json", function(error, us) {
   if (error) return console.error(error);
 
+  var landData = topojson.feature(us, us.objects.nation);
+  var borderData = topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; });
+  var countyData = topojson.feature(us, us.objects.counties).features
+    .sort(function(a, b) { return b.properties.population - a.properties.population; })
+    .map(function(d, i) { d.rank = i; return d; })
+    .reverse();  // TODO: is there a more elegant way to keep the cutoff on top in z order?
 
   svg.append("path")
-      .datum(topojson.feature(us, us.objects.nation))
+      .datum(landData)
       .attr("class", "land")
       .attr("d", path);
 
   svg.append("path")
-      .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
+      .datum(borderData)
       .attr("class", "border border--state")
       .attr("d", path);
 
   svg.append("g")
       .attr("class", "bubble")
     .selectAll("circle")
-      .data(topojson.feature(us, us.objects.counties).features
-        .sort(function(a, b) { return b.properties.population - a.properties.population; })
-        .map(function(d, i) { d.rank = i; return d; })
-        .reverse()  // TODO: is there a more elegant way to keep the cutoff on top in z order?
-      )
+      .data(countyData)
     .enter().append("circle")
       .attr("transform", function(d) {
         return d.geometry
