@@ -98,9 +98,12 @@ d3.json("build/us.json", function(error, us) {
   var landData = topojson.feature(us, us.objects.nation);
   var borderData = topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; });
   var countyData = topojson.feature(us, us.objects.counties).features
+    .filter(function(d) { return d.geometry })
     .sort(function(a, b) { return b.properties.population - a.properties.population; })
     .map(function(d, i) { d.rank = i; return d; })
     .reverse();  // TODO: is there a more elegant way to keep the cutoff on top in z order?
+
+  console.table(countyData.map(function(d) { return d.properties; }));
 
   svg.append("path")
       .datum(landData)
@@ -117,11 +120,7 @@ d3.json("build/us.json", function(error, us) {
     .selectAll("circle")
       .data(countyData)
     .enter().append("circle")
-      .attr("transform", function(d) {
-        return d.geometry
-          ? "translate(" + path.centroid(d) + ")"
-          : "translate(0,0)";
-      })
+      .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
       .attr("fill", color)
       .attr("stroke", color)
       .attr("fill-opacity", function(d) { return opacity(d.properties.population); })
