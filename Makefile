@@ -1,7 +1,7 @@
-all: us.json
+all: build/us.json
 
 clean:
-	rm -rf -- us.json build
+	rm -rf build
 
 .PHONY: all clean
 
@@ -34,7 +34,7 @@ build/states.json: build/counties.json
 		--key='d.id.substring(0, 2)' \
 		-- $<
 
-us.json: build/states.json
+build/us.json: build/states.json
 	node_modules/.bin/topojson-merge \
 		-o $@ \
 		--in-object=states \
