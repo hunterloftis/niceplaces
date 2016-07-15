@@ -27,9 +27,6 @@ const popData = parse(popLines, {
   } catch (e) { return {}; }
 });
 
-// console.log('popData:', popData.slice(0, 10));
-// console.log('length:', popData.length);
-
 const locData = parse(locLines, {
   trime: true,
   auto_parse: true,
@@ -47,15 +44,8 @@ const locData = parse(locLines, {
   } catch (e) { return {}; }
 });
 
-// console.log('locData:', locData.slice(0, 10));
-// console.log('length:', locData.length);
-// process.exit();
-
 const cities = popData.map(addLocation).filter(isValid);
-
-cities.forEach((city) => {
-  console.log([city.name, city.state, city.population, city.lat, city.long].join(','));
-})
+console.log(JSON.stringify(cities));
 
 function addLocation(city) {
   let location = locData.find(c => c.name === city.name && c.state === city.state);
