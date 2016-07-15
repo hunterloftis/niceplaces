@@ -1,0 +1,67 @@
+#!/usr/bin/env node
+'use strict';
+
+const fs = require('fs');
+const parse = require('csv-parse/lib/sync');
+const states = require('./states.json');
+
+const popFile = process.argv[2];
+const locFile = process.argv[3];
+
+const popLines = fs.readFileSync(popFile, 'utf8');
+const locLines = fs.readFileSync(locFile, 'utf8');
+
+const popData = parse(popLines, {
+  trim: true,
+  auto_parse: false,
+  skip_empty_lines: true,
+  relax_column_count: true,
+  columns: ['sumlev', 'stnum', 'county', 'place', 'cousub', 'concit', 'flag', 'func', 'name', 'state', 'pop10', 'base10', 'est10', 'est11', 'est12', 'est13', 'est14', 'est15' ]
+}).map((city) => {
+  try {
+    return {
+      name: city.name.toLowerCase().replace(' town', '').replace(' city', ''),
+      state: states[city.state.toLowerCase()],
+      population: Number(city.est15)
+    };
+  } catch (e) { return {}; }
+});
+
+// console.log('popData:', popData.slice(0, 10));
+// console.log('length:', popData.length);
+
+const locData = parse(locLines, {
+  trime: true,
+  auto_parse: true,
+  skip_empty_lines: true,
+  relax_column_count: true,
+  columns: ['state', 'fips52', 'name', 'fips55', 'gnis', 'type', 'lat', 'long']
+}).map((city) => {
+  try {
+    return {
+      name: city.name.toLowerCase(),
+      state: city.state.toLowerCase(),
+      lat: city.lat,
+      long: city.long
+    };
+  } catch (e) { return {}; }
+});
+
+// console.log('locData:', locData.slice(0, 10));
+// console.log('length:', locData.length);
+// process.exit();
+
+const cities = popData.map(addLocation).filter(isValid);
+
+cities.forEach((city) => {
+  console.log([city.name, city.state, city.population, city.lat, city.long].join(','));
+})
+
+function addLocation(city) {
+  let location = locData.find(c => c.name === city.name && c.state === city.state);
+  return Object.assign({}, city, location || {});
+}
+
+function isValid(city) {
+  return city.name && city.state && city.population && city.lat && city.long;
+}

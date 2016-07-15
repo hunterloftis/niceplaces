@@ -1,10 +1,21 @@
-all: build/us.json
+all: data/us.json
 
 clean:
-	rm -rf build
+	rm -rf data/build
+	mkdir -p data/build
 
 .PHONY: all clean
 
-build/cities.json: data/cities-population.csv data/cities-latlong.csv
-	scripts/merge-pop-loc 'data/cities-population.csv' 'data/cities-latlong.csv'
-	
+data/build/cities.json: data/build/cities-population.csv data/build/cities-latlong.csv
+	bin/merge-pop-loc 'data/build/cities-population.csv' 'data/build/cities-latlong.csv'
+
+data/build/cities-population.csv:
+	curl -o $@ 'http://www.census.gov/popest/data/cities/totals/2015/files/SUB-EST2015_ALL.csv'
+
+data/build/cities-latlong.zip:
+	curl -o $@ 'http://www.opengeocode.org/download/statecity.zip'
+
+data/build/cities-latlong.csv: data/build/cities-latlong.zip
+	unzip -od $(dir $@) $<
+	mv "$(dir $@)/statecity.csv" $@
+	touch $@
