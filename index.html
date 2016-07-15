@@ -20,7 +20,7 @@ body {
 
 .bubble {
   fill: cyan;
-  fill-opacity: 0;
+  fill-opacity: 1;
   stroke: cyan;
   stroke-width: 0.1pt;
 }
@@ -60,6 +60,10 @@ var path = d3.geo.path()
 //     .domain([0, 1e6])
 //     .range([0, 15]);
 
+var projection = d3.geo.albersUsa()
+      .scale(1280)
+      .translate([width / 2, height / 2]);
+
 var opacity = d3.scale.sqrt()
       .domain([0, 1e6])
       .range([0, 1]);
@@ -73,7 +77,8 @@ function color(d, i) {
 }
 
 function radius(d, i) {
-  return d.rank < cutoff ? 4 : 3;
+  return 1;
+  //return d.rank < cutoff ? 4 : 3;
 }
 
 // var legend = svg.append("g")
@@ -92,7 +97,7 @@ function radius(d, i) {
 //     .attr("dy", "1.3em")
 //     .text(d3.format(".1s"));
 
-d3.json("build/us.json", function(error, us) {
+d3.json('data/us.json', function(error, us) {
   if (error) return console.error(error);
 
   var landData = topojson.feature(us, us.objects.nation);
@@ -103,7 +108,7 @@ d3.json("build/us.json", function(error, us) {
     .map(function(d, i) { d.rank = i; return d; })
     .reverse();  // TODO: is there a more elegant way to keep the cutoff on top in z order?
 
-  console.table(countyData.map(function(d) { return d.properties; }));
+  //console.table(countyData.map(function(d) { return d.properties; }));
 
   svg.append("path")
       .datum(landData)
@@ -115,21 +120,34 @@ d3.json("build/us.json", function(error, us) {
       .attr("class", "border border--state")
       .attr("d", path);
 
-  svg.append("g")
-      .attr("class", "bubble")
-    .selectAll("circle")
-      .data(countyData)
-    .enter().append("circle")
-      .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
-      .attr("fill", color)
-      .attr("stroke", color)
-      .attr("fill-opacity", function(d) { return opacity(d.properties.population); })
-      .attr("r", radius)
-    .append("title")
-      .text(function(d) {
-        return d.properties.name
-            + "\nPopulation " + formatNumber(d.properties.population);
-      });
+  d3.csv('data/cities.csv', function(err, cities) {
+    svg.append('g')
+        .attr('class', 'bubble')
+      .selectAll('circle')
+        .data(cities)
+      .enter().append('circle')
+        .attr('cx', function(d) { return projection([d.long, d.lat])[0]; })
+        .attr('cy', function(d) { return projection([d.long, d.lat])[1]; })
+        .attr('r', radius)
+        .append('title')
+          .text(function(d) { return d.name; });
+  });
+  //
+  // svg.append("g")
+  //     .attr("class", "bubble")
+  //   .selectAll("circle")
+  //     .data(countyData)
+  //   .enter().append("circle")
+  //     .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+  //     .attr("fill", color)
+  //     .attr("stroke", color)
+  //     .attr("fill-opacity", function(d) { return opacity(d.properties.population); })
+  //     .attr("r", radius)
+  //   .append("title")
+  //     .text(function(d) {
+  //       return d.properties.name
+  //           + "\nPopulation " + formatNumber(d.properties.population);
+  //     });
 });
 
 d3.select(self.frameElement).style("height", height + "px");
