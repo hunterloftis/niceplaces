@@ -12,6 +12,7 @@ const popLines = fs.readFileSync(popFile, 'utf8');
 const locLines = fs.readFileSync(locFile, 'utf8');
 
 const MIN_POP = 1000;
+// http://www.census.gov/popest/data/cities/totals/2015/files/SUB-EST2015.pdf
 const INCORPORATED_PLACE = 162;
 const CONSOLIDATED_CITY = 170;
 
@@ -57,7 +58,9 @@ const locData = parse(locLines, {
 });
 
 const cities = popData.map(addLocation).filter(isValid);
-console.log(JSON.stringify(cities));
+
+console.log('name,state,population,lat,long');
+cities.forEach(c => console.log([c.name, c.state, c.population, c.lat, c.long].join(',')));
 
 function addLocation(city) {
   let location = locData.find(c => c.name === city.name && c.state === city.state);
