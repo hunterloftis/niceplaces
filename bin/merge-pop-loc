@@ -11,6 +11,10 @@ const locFile = process.argv[3];
 const popLines = fs.readFileSync(popFile, 'utf8');
 const locLines = fs.readFileSync(locFile, 'utf8');
 
+const MIN_POP = 1000;
+const INCORPORATED_PLACE = 162;
+const CONSOLIDATED_CITY = 170;
+
 const popData = parse(popLines, {
   trim: true,
   auto_parse: false,
@@ -19,12 +23,20 @@ const popData = parse(popLines, {
   columns: ['sumlev', 'stnum', 'county', 'place', 'cousub', 'concit', 'flag', 'func', 'name', 'state', 'pop10', 'base10', 'est10', 'est11', 'est12', 'est13', 'est14', 'est15' ]
 }).map((city) => {
   try {
+    let type = Number(city.sumlev);
+    if (type !== INCORPORATED_PLACE && type !== CONSOLIDATED_CITY) return {};
     return {
       name: city.name.toLowerCase().replace(' town', '').replace(' city', ''),
       state: states[city.state.toLowerCase()],
       population: Number(city.est15)
     };
   } catch (e) { return {}; }
+})
+.filter((city) => {
+  return city.population >= MIN_POP;
+})
+.sort((a, b) => {
+  return b.population - a.population;
 });
 
 const locData = parse(locLines, {
