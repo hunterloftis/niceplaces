@@ -1,0 +1,4 @@
+https://www.maxmind.com/en/free-world-cities-database
+http://ezlocal.com/blog/post/Top-5000-US-Cities-by-Population.aspx
+http://download.geonames.org/export/dump/
+http://www.opengeocode.org/download.php#cities

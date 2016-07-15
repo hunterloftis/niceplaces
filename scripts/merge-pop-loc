@@ -1,0 +1,53 @@
+#!/usr/bin/env node
+'use strict';
+
+const fs = require('fs');
+const parse = require('csv-parse/lib/sync');
+
+const popFile = process.argv[2];
+const locFile = process.argv[3];
+
+const popLines = fs.readFileSync(popFile, 'utf8');
+const locLines = fs.readFileSync(locFile, 'utf8');
+
+const popData = parse(popLines, {
+  trim: true,
+  auto_parse: true,
+  skip_empty_lines: true,
+  columns: ['name', 'state', 'population']
+}).map((city) => {
+  return {
+    name: city.name.toLowerCase(),
+    state: city.state.toLowerCase(),
+    population: Number(city.population.replace(/[^\d]+/g, ''))
+  };
+});
+
+const locData = parse(locLines, {
+  trime: true,
+  auto_parse: true,
+  skip_empty_lines: true,
+  columns: ['state', 'a', 'name', 'b', 'c', 'd', 'lat', 'long']
+}).map((city) => {
+  return {
+    name: city.name.toLowerCase(),
+    state: city.state.toLowerCase(),
+    lat: city.lat,
+    long: city.long
+  };
+});
+
+const cities = popData.map(addLocation).filter(isValid);
+
+cities.forEach((city) => {
+  console.log([city.name, city.state, city.population, city.lat, city.long].join(','));
+})
+
+function addLocation(city) {
+  let location = locData.find(c => c.name === city.name && c.state === city.state);
+  return Object.assign({}, city, location || {});
+}
+
+function isValid(city) {
+  return city.name && city.state && city.population && city.lat && city.long;
+}
