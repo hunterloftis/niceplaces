@@ -27,7 +27,7 @@ const popData = parse(popLines, {
     let type = Number(city.sumlev);
     if (type !== INCORPORATED_PLACE && type !== CONSOLIDATED_CITY) return {};
     return {
-      name: city.name.toLowerCase().replace(' town', '').replace(' city', ''),
+      name: city.name.toLowerCase().replace(' town', '').replace(' city', '').replace(' cdp', ''),
       state: states[city.state.toLowerCase()],
       population: Number(city.est15)
     };
