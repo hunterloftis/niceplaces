@@ -7,9 +7,15 @@
 const fs = require('fs');
 
 const TXT_FILE = process.argv[2];
-const INVALID_ID = '999999';
+const GSOD_DIR = process.argv[3];
 
 const lines = fs.readFileSync(TXT_FILE, 'utf8').split('\n');
+const gsodFiles = fs.readdirSync(GSOD_DIR, 'utf8');
+const stationRx = /(\d\d\d\d\d\d-\d\d\d\d\d)-.*\.op/;
+const stationIDs = gsodFiles.map((filename) => {
+  let match = stationRx.exec(filename);
+  return match ? match[1] : undefined;
+});
 
 // Find the header line
 let i = 0;
@@ -17,15 +23,19 @@ while (i <= lines.length && lines[i] !== lines[i].toUpperCase()) i++;
 const data = lines.slice(i + 2);
 
 const stations = data.reduce((stations, line) => {
+  // Filter out stations missing data
   let tokens = line.split(' ').filter(c => c !== '');
-  if (tokens.length < 3) return stations;
+  if (tokens.length < 4) return stations;
 
-  let id = tokens[0] !== INVALID_ID ? tokens[0] : tokens[1];
-  if (id === INVALID_ID) return stations;
-
+  // Filter out non-US stations
   let usCol = tokens.indexOf('US');
   if (usCol === -1) return stations;
 
+  // Filter out stations that we don't have historical weather data for
+  let id = `${ tokens[0] }-${ tokens[1] }`;
+  if (stationIDs.indexOf(id) === -1) return stations;
+
+  // Filter out stations without locations
   let name = tokens.slice(2, usCol).join(' ');
   let location = tokens.filter(t => t[0] === '+' || t[0] === '-');
   if (location.length !== 3) return stations;

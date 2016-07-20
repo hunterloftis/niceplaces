@@ -31,8 +31,8 @@ data/build/gsod_2015: data/build/gsod_2015.tar
 data/build/cities-pop-loc-stat.csv: data/build/stations.csv data/build/cities-pop-loc.csv
 	bin/match-stations 'data/build/cities-pop-loc.csv' 'data/build/stations.csv' > data/build/cities-pop-loc-stat.csv
 
-data/build/stations.csv: data/build/stations.txt
-	bin/filter-stations data/build/stations.txt > $@
+data/build/stations.csv: data/build/stations.txt data/build/gsod_2015
+	bin/filter-stations data/build/stations.txt data/build/gsod_2015 > $@
 
 data/build/cities-pop-loc.csv: data/build/cities-population.csv data/build/cities-latlong.csv
 	bin/merge-pop-loc 'data/build/cities-population.csv' 'data/build/cities-latlong.csv' > $@
