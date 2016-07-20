@@ -1,0 +1,44 @@
+#!/usr/bin/env node
+'use strict';
+
+// This is a weird hand-maintained file with no real structure;
+// we have to do some work to extract meaningful, accurate data
+
+const fs = require('fs');
+const parse = require('csv-parse/lib/sync');
+
+const TXT_FILE = process.argv[2];
+const INVALID_ID = '999999';
+
+const lines = fs.readFileSync(TXT_FILE, 'utf8').split('\n');
+
+// Find the header line
+let i = 0;
+while (i <= lines.length && lines[i] !== lines[i].toUpperCase()) i++;
+const data = lines.slice(i + 2);
+
+const stations = data.reduce((stations, line) => {
+  let tokens = line.split(' ').filter(c => c !== '');
+  if (tokens.length < 3) return stations;
+
+  let id = tokens[0] !== INVALID_ID ? tokens[0] : tokens[1];
+  if (id === INVALID_ID) return stations;
+
+  let usCol = tokens.indexOf('US');
+  if (usCol === -1) return stations;
+
+  let name = tokens.slice(2, usCol - 1).join(' ');
+  let location = tokens.filter(t => t[0] === '+' || t[0] === '-');
+  if (location.length !== 3) return stations;
+
+  let lat = location[0];
+  let lon = location[1];
+
+  stations.push({ id, name, lat, lon });
+  return stations;
+}, []);
+
+console.log('id,name,lat,lon');
+stations.forEach((s) => {
+  console.log([s.id, s.name, s.lat, s.lon].join(','));
+});

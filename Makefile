@@ -28,7 +28,7 @@ data/build/gsod_2015: data/build/gsod_2015.tar
 	gunzip -rf data/build/gsod_2015
 	find data/build/gsod_2015 -name "*.op" -size -45k -delete
 
-data/build/stations.json: data/build/stations.txt data/build/gsod_2015
+data/build/stations.csv: data/build/stations.txt
 	bin/filter-stations data/build/stations.txt > $@
 
 data/build/cities-merged.csv: data/build/cities-population.csv data/build/cities-latlong.csv
