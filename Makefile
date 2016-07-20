@@ -27,7 +27,7 @@ data/build/gsod_2015.txt: data/build/gsod_2015.tar
 	tar -C data/build/gsod_2015 -xvf data/build/gsod_2015.tar
 	gunzip -rf data/build/gsod_2015
 	find data/build/gsod_2015 -name *.op -print0 -quit | xargs -0 -I file head -n 1 file > $@
-	find data/build/gsod_2015 -name *.op -print0 | xargs -0 -I file tail -n -2 file >> $@
+	find data/build/gsod_2015 -name *.op -print0 | xargs -0 -I file tail -n +2 file >> $@
 	rm -rf data/build/gsod_2015
 
 data/build/cities-merged.csv: data/build/cities-population.csv data/build/cities-latlong.csv
