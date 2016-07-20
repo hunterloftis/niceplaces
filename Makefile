@@ -13,8 +13,8 @@ data/us.json: data/build/states.json
 		--out-object=nation \
 		-- $<
 
-data/cities.csv: data/build/cities-merged.csv
-	cp data/build/cities-merged.csv $@
+data/cities.csv: data/build/cities-pop-loc-stat.csv data/build/gsod_2015
+	bin/analyze-cities data/build/cities-pop-loc-stat.csv data/build/gsod_2015 > $@
 
 data/build/stations.txt:
 	curl -o $@ 'ftp://ftp.ncdc.noaa.gov/pub/data/noaa/isd-history.txt'

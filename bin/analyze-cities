@@ -1,0 +1,69 @@
+#!/usr/bin/env node
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+const parse = require('csv-parse/lib/sync');
+
+const CITIES_FILE = process.argv[2];
+const GSOD_DIR = process.argv[3];
+const GSOD_FILES = fs.readdirSync(GSOD_DIR, 'utf8');
+
+let stationCache = {};
+
+const cities = parse(fs.readFileSync(CITIES_FILE, 'utf8'), {
+  trim: true,
+  columns: true,
+  auto_parse: true
+});
+
+cities.map(addPleasantDays);
+
+console.log('name,state,population,lat,lon,pleasant');
+cities.forEach((c) => {
+  console.log([c.name, c.state, c.population, c.lat, c.lon, c.pleasant].join(','));
+});
+
+function addPleasantDays(city) {
+  let days = getWeather(city.station);
+  let pleasantDays = days.reduce((count, day) => {
+    if (day.min < 55) return count;
+    if (day.max > 85) return count;
+    if (day.precip > 1) return count;
+    if (day.snow > 0) return count;
+    return count + 1;
+  }, 0);
+  city.pleasant = pleasantDays / days.length;
+  return city;
+}
+
+function getWeather(station) {
+  if (!stationCache[station]) {
+    let weatherFile = path.join(GSOD_DIR, `${ station }-2015.op`);
+    let weather = fs.readFileSync(weatherFile, 'utf8')
+      .split('\n')
+      .slice(1)
+      .map(weatherFromLine)
+      .filter(w => w);
+    stationCache[station] = weather;
+  }
+  return stationCache[station];
+}
+
+function weatherFromLine(line) {
+  try {
+    let tokens = line.split(' ').filter(c => c !== '');
+    let max = toNumber(tokens[17]);
+    let min = toNumber(tokens[18]);
+    let precip = toNumber(tokens[19]);
+    let snow = toNumber(tokens[20]);
+    return { min, max, precip, snow };
+  } catch (e) {
+    return undefined;
+  }
+}
+
+function toNumber(str) {
+  if (str === '99.99' || str === '999.9') return 0;
+  return Number(str.match(/[\d.]/g).join(''));
+}
