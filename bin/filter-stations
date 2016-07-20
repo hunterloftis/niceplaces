@@ -5,7 +5,6 @@
 // we have to do some work to extract meaningful, accurate data
 
 const fs = require('fs');
-const parse = require('csv-parse/lib/sync');
 
 const TXT_FILE = process.argv[2];
 const INVALID_ID = '999999';
@@ -27,7 +26,7 @@ const stations = data.reduce((stations, line) => {
   let usCol = tokens.indexOf('US');
   if (usCol === -1) return stations;
 
-  let name = tokens.slice(2, usCol - 1).join(' ');
+  let name = tokens.slice(2, usCol).join(' ');
   let location = tokens.filter(t => t[0] === '+' || t[0] === '-');
   if (location.length !== 3) return stations;
 

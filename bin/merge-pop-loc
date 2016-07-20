@@ -45,22 +45,22 @@ const locData = parse(locLines, {
   auto_parse: true,
   skip_empty_lines: true,
   relax_column_count: true,
-  columns: ['state', 'fips52', 'name', 'fips55', 'gnis', 'type', 'lat', 'long']
+  columns: ['state', 'fips52', 'name', 'fips55', 'gnis', 'type', 'lat', 'lon']
 }).map((city) => {
   try {
     return {
       name: city.name.toLowerCase(),
       state: city.state.toLowerCase(),
       lat: city.lat,
-      long: city.long
+      lon: city.lon
     };
   } catch (e) { return {}; }
 });
 
 const cities = popData.map(addLocation).filter(isValid);
 
-console.log('name,state,population,lat,long');
-cities.forEach(c => console.log([c.name, c.state, c.population, c.lat, c.long].join(',')));
+console.log('name,state,population,lat,lon');
+cities.forEach(c => console.log([c.name, c.state, c.population, c.lat, c.lon].join(',')));
 
 function addLocation(city) {
   let location = locData.find(c => c.name === city.name && c.state === city.state);
@@ -68,5 +68,5 @@ function addLocation(city) {
 }
 
 function isValid(city) {
-  return city.name && city.state && city.population && city.lat && city.long;
+  return city.name && city.state && city.population && city.lat && city.lon;
 }

@@ -1,0 +1,57 @@
+#!/usr/bin/env node
+'use strict';
+
+const fs = require('fs');
+const parse = require('csv-parse/lib/sync');
+const geo = require('geolib');
+
+const CITIES_FILE = process.argv[2];
+const STATIONS_FILE = process.argv[3];
+const MAX_DISTANCE_METERS = 80000;
+const EARTH_R = 6371009;            // meters
+const EARTH_C = 2 * Math.PI * EARTH_R;
+const METER_PER_DEG = EARTH_C / 360;    // Meters per degree of latitude
+const DEG_TO_RAD = Math.PI / 180;
+
+const cities = parse(fs.readFileSync(CITIES_FILE, 'utf8'), {
+  trim: true,
+  columns: true,
+  auto_parse: true
+});
+
+const stations = parse(fs.readFileSync(STATIONS_FILE, 'utf8'), {
+  trim: true,
+  columns: true,
+  auto_parse: true
+});
+
+const citiesWithStations = cities.map((city) => {
+  let possibleStations = stations.filter((station) => {
+    // optimization to rule out far distant stations quickly
+    let dLat = Math.abs(station.lat - city.lat);
+    if (dLat * METER_PER_DEG > MAX_DISTANCE_METERS) return false;
+    let dLon = Math.abs(station.lon - city.lon);
+    if (dLon * Math.cos(city.lat * DEG_TO_RAD) > MAX_DISTANCE_METERS) return false;
+    return true;
+  });
+  let ranges = possibleStations.map((station) => {
+    return { station, distance: getDistance(city, station) };
+  }).sort((a, b) => {
+    return a.distance - b.distance;
+  });
+  let nearest = ranges[0];
+  let isNearby = nearest.distance < MAX_DISTANCE_METERS;
+  if (isNearby) city.station = nearest.station.id;
+  return city;
+}).filter(city => city.station);
+
+console.log('name,state,population,lat,lon,station');
+citiesWithStations.forEach((c) => {
+  console.log([c.name, c.state, c.population, c.lat, c.lon, c.station].join(','));
+});
+
+function getDistance(a, b) {
+  let from = { latitude: a.lat, longitude: a.lon };
+  let to = { latitude: b.lat, longitude: b.lon };
+  return geo.getDistanceSimple(from, to);
+}
