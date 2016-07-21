@@ -2,6 +2,7 @@ all: data/us.json data/cities.csv
 
 clean:
 	rm -rf data/build/*
+	rm data/cities.csv data/us.json
 	mkdir -p data/build
 
 .PHONY: all clean
