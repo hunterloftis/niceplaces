@@ -27,6 +27,8 @@ cities.forEach((c) => {
 function addPleasantDays(city) {
   let days = getWeather(city.station);
   let pleasantDays = days.reduce((count, day) => {
+    // let coldest = day.min - day.wind * 0.1;
+    // let warmest = day.max +
     if (day.min < 55) return count;
     if (day.max > 85) return count;
     if (day.precip > 1) return count;
@@ -57,7 +59,8 @@ function weatherFromLine(line) {
     let min = toNumber(tokens[18]);
     let precip = toNumber(tokens[19]);
     let snow = toNumber(tokens[20]);
-    return { min, max, precip, snow };
+    let wind = toNumber(tokens[14]);
+    return { min, max, precip, snow, wind };
   } catch (e) {
     return undefined;
   }

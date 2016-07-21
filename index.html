@@ -20,10 +20,10 @@ body {
 
 .bubble {
   fill: cyan;
-  fill-opacity: 0.25;
+  fill-opacity: 1;
   stroke: cyan;
   stroke-opacity: 1;
-  stroke-width: 0.1;
+  stroke-width: 0.15;
 }
 
 .bubble :hover {
@@ -117,23 +117,29 @@ d3.json('data/us.json', function(error, us) {
       .attr("d", path);
 
   d3.csv('data/cities.csv', function(err, cities) {
+    var sortedCities = cities.sort(function(a, b) {
+      return a.pleasant - b.pleasant;
+    });
     var maxPleasant = cities.reduce(function(max, city) {
       return Math.max(city.pleasant, max);
     }, 0);
     svg.append('g')
         .attr('class', 'bubble')
       .selectAll('circle')
-        .data(cities)
+        .data(sortedCities)
       .enter().append('circle')
         .attr('cx', function(d) { return projection([d.lon, d.lat])[0]; })
         .attr('cy', function(d) { return projection([d.lon, d.lat])[1]; })
         .attr('r', radius)
-        .attr('fill-opacity', function(d) { return d.pleasant / maxPleasant; })
+        .attr('fill', function(d) {
+          var b = 56 + 200 * d.pleasant / maxPleasant;
+          return d3.rgb(0, b, b);
+        })
         .append('title')
           .text(function(d) { return d.name; });
 
     function radius(d) {
-      return 1;
+      return 2;
       // return d.pleasant / maxPleasant * 3 + 1;
       //return 1;
       //return d.rank < cutoff ? 4 : 3;
