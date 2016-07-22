@@ -133,7 +133,10 @@ d3.json('data/us.json', function(error, us) {
           return d3.rgb(0, b, b);
         })
         .append('title')
-          .text(function(d) { return [d.name, d.state].join(', '); });
+          .text(function(d) {
+            var pDays = Math.round(d.pleasant * 365);
+            return [d.name, ', ', d.state, ' - ', pDays].join('');
+          });
   });
 
   //
