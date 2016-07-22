@@ -10,8 +10,6 @@ const CITIES_FILE = process.argv[2];
 const GSOD_DIR = process.argv[3];
 const GSOD_FILES = fs.readdirSync(GSOD_DIR, 'utf8');
 const KNOTS_TO_MPH = 1.152;
-const FEELS_UNITS = { temp: 'f', speed: 'mph' };
-const FEELS_ALGS = ['HI', 'AAT', 'WCI'];
 
 let stationCache = {};
 
@@ -31,16 +29,10 @@ cities.forEach((c) => {
 function addPleasantDays(city) {
   let days = getWeather(city.station);
   let pleasantDays = days.reduce((count, day) => {
-    let feelsMax = feels({ temp: day.max, speed: day.wind, dewPoint: day.dew, units: FEELS_UNITS }).like(FEELS_ALGS);
-    let feelsMin = feels({ temp: day.min, speed: day.wind, dewPoint: day.dew, units: FEELS_UNITS }).like(FEELS_ALGS);
-
-    if (feelsMin < 55) return count;
-    if (feelsMax > 90) return count;
+    if (day.min < 60) return count;
+    if (day.max > 85) return count;
     if (day.precip > 1) return count;
     if (day.snow > 0) return count;
-
-    //console.log(city.name, day, 'feelsMax:', feelsMax, 'feelsMin:', feelsMin);
-
     return count + 1;
   }, 0);
   city.pleasant = pleasantDays / days.length;
@@ -68,8 +60,7 @@ function weatherFromLine(line) {
     let precip = toNumber(tokens[19]);
     let snow = toNumber(tokens[20]);
     let wind = toNumber(tokens[14]);
-    let dew = toNumber(tokens[5]);
-    return { min, max, precip, snow, wind, dew};
+    return { min, max, precip, snow, wind };
   } catch (e) {
     return undefined;
   }
